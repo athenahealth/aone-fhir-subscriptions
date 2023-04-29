@@ -32,14 +32,13 @@ com:
   athenahealth:
     iam:
       host: https://api.preview.platform.athenahealth.com/oauth2/v1/token
-    mdp:
-      host: https://api.preview.platform.athenahealth.com/v1/
-      scopes: athena/service/Athenanet.MDP.*
-      entityType:
-        appointment: appointments
-        patient: patients
-        provider: providers
-        claim: claims
+    api:
+      baseUrl: https://api.preview.platform.athenahealth.com
+      fhirBasePath: /fhir/r4
+      scopes: athena/service/Athenanet.MDP.* system/Patient.read
+      endpoints:
+        appointment: /v1/{practiceid}/appointments/{id}
+        order: /v1/{practiceid}/patients/{patientid}/documents/order/{id}
     credentials:
       clientId: <Client_Id>
       clientSecret: <Client_Secret>

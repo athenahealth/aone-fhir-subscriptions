@@ -8,12 +8,10 @@ import org.springframework.context.annotation.Configuration;
 import java.util.Map;
 
 @Configuration
-@ConfigurationProperties(prefix = "com.athenahealth.mdp")
+@ConfigurationProperties(prefix = "com.athenahealth.api")
 @Setter
 @Getter
 public class EntityConfig {
 
-    private String host;
-
-    private Map<String, String> entityType;
+    private Map<String, String> endpoints;
 }

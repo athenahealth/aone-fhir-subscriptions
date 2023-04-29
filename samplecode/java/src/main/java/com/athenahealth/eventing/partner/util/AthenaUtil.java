@@ -9,8 +9,8 @@ public class AthenaUtil {
 
     public static String getMdpEndpoint(String entityType) {
         EntityConfig entityConfig = BeanUtil.getBean(EntityConfig.class);
-        if (!CollectionUtils.isEmpty(entityConfig.getEntityType())) {
-            return entityConfig.getEntityType().get(entityType);
+        if (!CollectionUtils.isEmpty(entityConfig.getEndpoints())) {
+            return entityConfig.getEndpoints().get(entityType);
         }
         return entityType;
 

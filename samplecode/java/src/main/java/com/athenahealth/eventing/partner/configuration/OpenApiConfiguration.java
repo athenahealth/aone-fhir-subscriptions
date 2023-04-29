@@ -29,9 +29,9 @@ public class OpenApiConfiguration {
 
   private Info buildInfo(String appVersion) {
     return new Info()
-        .title("Stub Webhook Service")
+        .title("athena FHIR Subscriptions client")
         .version(appVersion)
-        .description("Stub Service to simulate MDP partner webhook")
+        .description("Example athenahealth FHIR Subscriptions webhook client")
         .version(appVersion);
   }
 }
