@@ -1,0 +1,16 @@
+com:
+  athenahealth:
+    iam:
+      host: https://localhost:8080/oauth2/v1/token
+    mdp:
+      host: https://localhost:8081/v1/
+      scopes: athena/service/Athenanet.MDP.*
+      entityType:
+        appointment: appointments
+        patient: patients
+        provider: providers
+        claim: claims
+    credentials:
+      clientId: <Client_Id>
+      clientSecret: <Client_Secret>
+      grantType: client_credentials

@@ -1,0 +1,46 @@
+# https://springdoc.org/faq.html#how-can-i-deploy-springdoc-openapi-ui-behind-a-reverse-proxy
+server:
+  forward-headers-strategy: framework
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include:
+          - health
+          - info
+          - env
+          - flyway
+          - prometheus
+          - metrics
+
+
+springdoc:
+  version: 1.0.0 # use @project.version@ to extract the artifact version from pom.xml
+  api-docs:
+    groups:
+      enabled: true
+  swagger-ui:
+    path: /swagger-ui.html
+    display-request-duration: true
+    groups-order: DESC
+    operationsSorter: method
+    urls:
+      - url: "/v3/api-docs"
+        name: "Partner Service"
+com:
+  athenahealth:
+    iam:
+      host: https://api.preview.platform.athenahealth.com/oauth2/v1/token
+    mdp:
+      host: https://api.preview.platform.athenahealth.com/v1/
+      scopes: athena/service/Athenanet.MDP.*
+      entityType:
+        appointment: appointments
+        patient: patients
+        provider: providers
+        claim: claims
+    credentials:
+      clientId: <Client_Id>
+      clientSecret: <Client_Secret>
+      grantType: client_credentials
