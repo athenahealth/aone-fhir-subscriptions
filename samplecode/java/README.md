@@ -27,4 +27,4 @@ Test webhook endpoint using the provided shell scripts:
 
 Note: if you want to adjust the example notification payload provided in the above script, you will also need to update the X-Hub-Signature accordingly.  *Whitespace matters here, including trailing whitespace.*  To calculate the expected HMAC signature you can use an online calculator such as https://dinochiesa.github.io/hmachash/index.html.  For example:
 
-![hmac calculator screenshot](example_signature_calculation.png)
+![hmac calculator screenshot](example-signature-calculation.png)
