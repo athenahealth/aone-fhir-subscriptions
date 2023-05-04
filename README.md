@@ -1,4 +1,5 @@
-# athenahealth Event Subscription Platform [v0.5 - 2023-05-03]
+# athenahealth Event Subscription Platform
+*v0.5 - 2023-05-03*
 
 ## Background
 
@@ -121,7 +122,7 @@ Response:
 }
 ```
 
-The `X-Hub-Secret` header is optional but STRONGLY recommended to allow your webhook to verify authenticity of the notification messages received and ensure that the payload originated from athenahealth.  If provided, this secret will be used to generate an HMAC signature for each outbound notification as described at [https://www.w3.org/TR/websub/#signing-content](https://www.w3.org/TR/websub/#signing-content).
+The `X-Hub-Secret` header is optional but _strongly recommended_ to allow your webhook to verify authenticity of the notification messages received and ensure that the payload originated from athenahealth.  If provided, this secret will be used to generate an HMAC signature for each outbound notification as described at [https://www.w3.org/TR/websub/#signing-content](https://www.w3.org/TR/websub/#signing-content).
 
 ### Deleting a Subscription
 
