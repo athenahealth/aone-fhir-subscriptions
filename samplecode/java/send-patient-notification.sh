@@ -3,7 +3,7 @@
 curl -si --location --request POST 'http://localhost:8888/process-event' \
 --header 'accept: */*' \
 --header 'Content-Type: application/fhir+json' \
---header 'X-Hub-Signature: kbs2S3/DZI2oSdYpl2sMehs3oUbSFXBJxIszC11U2XM=' \
+--header 'X-Hub-Signature: sha256=3e14365681f764b028eb626e4193c4c19015f063c599f4fe2c35bc7a1c0026bc' \
 --data-raw '{
   "resourceType": "Bundle",
   "id": "a0f1df2c-ede9-4528-9ac2-1d1b36df27b2",
@@ -51,7 +51,7 @@ curl -si --location --request POST 'http://localhost:8888/process-event' \
         "subscription": {
           "reference": "Subscription/b9f6db63-4883-41bb-9fef-97372cbd3fcd"
         },
-        "topic": "https://api.fhir.athena.io/fhir/r4/SubscriptionTopic/Patient.update"
+        "topic": "https://api.platform.athenahealth.com/fhir/r4/SubscriptionTopic/Patient.update"
       },
       "request": {
         "method": "GET",
@@ -59,13 +59,6 @@ curl -si --location --request POST 'http://localhost:8888/process-event' \
       },
       "response": {
         "status": "200"
-      }
-    },
-    {
-      "id": "ead73c9e-ab6e-4db5-9b73-1f73cb243682",
-      "response": {
-        "status": "200",
-        "lastModified": "2023-04-14T09:22:56Z"
       }
     }
   ]

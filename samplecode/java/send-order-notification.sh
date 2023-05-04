@@ -3,7 +3,7 @@
 curl -si --location --request POST 'http://localhost:8888/process-event' \
 --header 'accept: */*' \
 --header 'Content-Type: application/fhir+json' \
---header 'X-Hub-Signature: x/dtB8ZGsJT7Vlk7JvO6uRIg7IEns+R6rfC/MGkHZCM=' \
+--header 'X-Hub-Signature: sha256=ed974ad7f8cd4a55843d7109419e51f122d5da25700b51d0ad265d47f5c11abd' \
 --data-raw '{
   "resourceType": "Bundle",
   "id": "05f90103-5ce1-327b-b8fe-287225e176a8",
@@ -58,21 +58,14 @@ curl -si --location --request POST 'http://localhost:8888/process-event' \
         "subscription": {
           "reference": "Subscription/62865e96-3fe4-3f6f-b476-b8eb87b90892"
         },
-        "topic": "https://api.fhir.athena.io/fhir/r4/SubscriptionTopic/Order.signoff"
+        "topic": "https://api.platform.athenahealth.com/fhir/r4/SubscriptionTopic/Order.signoff"
       },
       "request": {
         "method": "GET",
-        "url": "Subscription/62865e96-3fe4-3f6f-b476-b8eb87b90892"
+        "url": "Subscription/62865e96-3fe4-3f6f-b476-b8eb87b90892/$status"
       },
       "response": {
         "status": "200"
-      }
-    },
-    {
-      "id": "b594cd05-74e6-4b5e-9205-c618667ebf75",
-      "response": {
-        "status": "200",
-        "lastModified": "2023-04-14T09:22:56Z"
       }
     }
   ]

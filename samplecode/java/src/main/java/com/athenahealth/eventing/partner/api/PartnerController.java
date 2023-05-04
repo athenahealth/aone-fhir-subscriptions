@@ -23,12 +23,17 @@ public class PartnerController {
     @PostMapping(path = "process-event",
         consumes = ApplicationConstants.PAYLOAD_MIME_TYPE)
     public void testController(@RequestBody(required = false) String request,
-                               @RequestHeader(required = true, name = ApplicationConstants.X_HUB_SIGNATURE) String signature)  {
+                               @RequestHeader(required = true, name = ApplicationConstants.X_HUB_SIGNATURE) String signatureHeader)  {
         InputStream inputStream = new ByteArrayInputStream(request.getBytes());
         String result = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
         String expectedSignature = HmacUtil.calculateHmac(result, ApplicationConstants.HMAC_LOCAL_TEST_SECRET);
+        String signatureMethod = signatureHeader.substring(0, signatureHeader.indexOf("="));
+        String actualSignature = signatureHeader.substring(signatureHeader.indexOf("=")+1);
 
-        if(!HmacUtil.compareHmac(signature, expectedSignature, ApplicationConstants.HMAC_LOCAL_TEST_SECRET)) {
+        if (!signatureMethod.equals("sha256")) {
+            log.error("Unexpected signature method!");
+            throw new SignatureAuthenticationException();
+        } else if(!HmacUtil.compareHmac(actualSignature, expectedSignature, ApplicationConstants.HMAC_LOCAL_TEST_SECRET)) {
             log.error("Signature Authentication failed.");
             throw new SignatureAuthenticationException();
         } else {
