@@ -1,12 +1,12 @@
 
-## Setting up the service locally:
+## 1 - Setting up the service locally:
 
-### Pre-requisites
+### 1.1 - Pre-requisites
 - Java11
 - Maven
 - athenahealth developer portal preview client ID and secret
 
-### Starting the service
+### 1.2 - Starting the service
 
 Edit `src/main/resources/application.yaml` and update the `clientId` and `clientSecret` placeholders with your preview client ID and secret.
 
@@ -16,6 +16,8 @@ SPRING_PROFILES_ACTIVE=local
 ```
 
 Navigate to http://localhost:8888/swagger-ui/index.html
+
+### 1.3 - Testing the service
 
 Test webhook endpoint using the provided shell scripts:
 

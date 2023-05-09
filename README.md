@@ -1,7 +1,8 @@
 # athenahealth Event Subscription Platform
-*v0.5 - 2023-05-03*
 
-## Background
+*v0.6 - 2023-05-08*
+
+## 1 - Background
 
 The athenahealth Event Subscription Platform makes a broad collection of healthcare domain events available for clients and partners to consume as near real-time notifications.  The platform largely conforms to the [FHIR Subscriptions R5 Backport STU 1.0.0](http://hl7.org/fhir/uv/subscriptions-backport/STU1/StructureDefinition-backport-subscription.html) implementation guide, but with a few differences, primarily around [error handling](#error-handling).  At present the only supported channel type is `rest-hook` and supported payload type is `id-only`.  Resources referenced in the event notifications include both FHIR R4 and proprietary athenahealth endpoints where applicable.  See [payload](#event-payload) below for more details.
 
@@ -9,9 +10,9 @@ _Note: the Subscription and SubscriptionTopic endpoints referenced in this docum
 
 &nbsp;  
 
-## Prerequisites
+## 2 - Prerequisites
 
-### Set up your Webhook
+### 2.1 - Set up your Webhook
 
 In order to consume events you will need to set up a webhook endpoint to receive FHIR Subscription notification bundles from the athenahealth Event Subscription platform.  As a best practice, we recommend keeping webhooks as lightweight as possible to ensure that messages can be acknowledged quickly and reliably.  For more on this, see [best practices](#keep-webhook-processing-fast) below.
 
@@ -21,19 +22,22 @@ Included in this repo is a sample java webhook application that you can run buil
 
 _Note: this sample application is not intended for direct production use but is provided as an illustrative example to help inform your webhook development efforts._
 
-### Set up your Developer Portal Account
+### 2.2 - Set up your Developer Portal Account
 
 See [athenahealth API Onboarding Overview](https://docs.athenahealth.com/api/guides/onboarding-overview) for details on how to register a new athenahealth Developer Portal account and get an OAuth client ID and secret pair to access athenahealth APIs in general.
 
-See also [Authorization Overview](https://docs.athenahealth.com/api/guides/authorization-overview) for information on how to request an OAuth token with specific scopes.  Note that only 2-Legged OAuth apps are permitted to access the Event Subscription APIs at this time.
+See also [Authorization Overview](https://docs.athenahealth.com/api/guides/authorization-overview) for information on how to request an OAuth token with specific scopes.  Note that only 2-Legged OAuth apps are permitted to access the Event Subscription APIs at this time.  Note also that the Subscription APIs are *not* part of athenahealth's certified US Core FHIR R4 endpoints, so these scopes will not be listed in the self-service UI.  You should work with the athenahealth API operations team to request the following scopes:
+- `system/SubscriptionTopic.read`
+- `system/Subscription.write`
+- `system/Subscription.read`
 
 &nbsp;  
 
-## Subscription Management
+## 3 - Subscription Management
 
-### Topic Discovery
+### 3.1 - Topic Discovery
 
-To discover the topics available for subscription, you can call the SubscriptionTopic search endpoint.  This endpoint requires the `system/SubscriptionTopic.read` scope.  For preliminary list of topics available for subscription, see [appendix](#subscription-topics) below.
+To discover the topics available for subscription, you can call the SubscriptionTopic search endpoint.  This endpoint requires the `system/SubscriptionTopic.read` scope.  For the current list of topics available for subscription, see [appendix](#subscription-topics) below.
 
 Request:
 ```
@@ -75,7 +79,7 @@ Response:
 }
 ```
 
-### Creating a Subscription
+### 3.2 - Creating a Subscription
 
 You will need to create a separate Subscription per topic.  This endpoint requires the `system/Subscription.write` scope.
 
@@ -124,7 +128,7 @@ Response:
 
 The `X-Hub-Secret` header is optional but _strongly recommended_ to allow your webhook to verify authenticity of the notification messages received and ensure that the payload originated from athenahealth.  If provided, this secret will be used to generate an HMAC signature for each outbound notification as described at [https://www.w3.org/TR/websub/#signing-content](https://www.w3.org/TR/websub/#signing-content).
 
-### Deleting a Subscription
+### 3.3 - Deleting a Subscription
 
 To unsubscribe from a topic you will need to call the `DELETE /Subscription/{id}` endpoint with the `system/Subscription.write` scope.
 
@@ -138,7 +142,9 @@ Response:
 204 No Content
 ```
 
-If you do not know your Subscription ID, you can find it in any subscription notification Bundle under `entry[0].resource.subscription.reference` or you can use the Subscription search to find it:
+### 3.4 - Listing your Subscriptions
+
+If you do not know your Subscription ID, you can find it in any subscription notification Bundle under `entry[0].resource.subscription.reference` or you can use the Subscription search to find it.  This endpoint requires the `system/Subscription.read` scope.
 
 Request:
 ```
@@ -169,9 +175,9 @@ Response:
 
 &nbsp;  
 
-## Event Notifications
+## 4 - Event Notifications
 
-### <a name="event-payload"></a> Event Payload
+### <a name="event-payload"></a> 4.1 - Event Payload
 
 As noted above, we currently support only the `id-only` payload type.  This means that events will contain a reference to the focus resource related to the event, but you will need to call back to a FHIR R4 or proprietary athenahealth API endpoint if you want to retrieve the latest content for that resource.  While this introduces an extra step, it also reduces the risk of accidental PHI exposure by keeping all access control at the athenahealth API layer.  It also helps avoid some ordering-related gotchas (see also [Event Ordering](#event-ordering) below).
 
@@ -253,7 +259,7 @@ It is important that your webhook returns a 2xx response if and only if the even
 
 Note: also discussed under [error handling](#error-handling) below, the `eventsSinceSubscriptionStart`, `eventsInNotification`, and `notificationEvent.eventNumber` fields are handled differently from what is specified in the Subscriptions Backport IG.  In our implementation these fields are populated relative to the current notification Bundle, so if a notification Bundle contains 3 events then these fields would be set to `"3"`, `3`, and `["1","2","3"]` respectively.
 
-### <a name="event-ordering"></a> Event Ordering
+### <a name="event-ordering"></a> 4.2 - Event Ordering
 
 Strict event ordering is not practical to achieve with webhooks ([this article](https://www.svix.com/blog/guaranteeing-webhook-ordering/) provides a good overview of the challenges).  For this reason we recommend that you design your webhook not to rely on ordered events.  Note that because our event notifications only contain a reference to the changed resource, you will need to call back to the API to pull the resource content regardless, so you are guaranteed to get the *current* resource state whether you are calling in response to the most recent event or an earlier one.
 
@@ -263,35 +269,35 @@ We also provide a timestamp with each event that corresponds to the database com
 
 Again, our recommended best practice is to avoid relying on ordering insofar as possible.  One common use case is to use event notifications to update a cache of resources.  A good way to do this is to use a durable queue to decouple event delivery from resource inflation and event processing (see also [best practices](#keep-webhook-processing-fast) below).  If you intend to distribute the inflation and processing of messages from the queue across multiple consumer threads, you will likely want to partition the events by resource ID to ensure that multiple events for the same resource are always processed by the same consumer.  Otherwise this can lead to race conditions if two events occur in quick succession, the same resource may be inflated twice by separate consumer threads and, depending on timing, your cache could end up persisting the older resource state.
 
-### <a name="duplicate-detection"></a> Duplicate Detection
+### <a name="duplicate-detection"></a> 4.3 - Duplicate Detection
 
-The athenahealth Event Subscription platform is designed to provide *at least once* delivery semantics.  This means that you may, on occasion, receive duplicative notifications for the same event.  A unique ID for each event is provided in the notification Bundle as shown in [Event Payload](#event-payload) above.  Keep in mind that you may also receive distinct events (with distinct IDs) for the same focus resource.  For example, if the same Patient is updated twice in quick succession, you will receive two separate `Patient.update` events that both contain the same Patient ID reference.  These events might arrive in two separate notification Bundles or in a single notification Bundle.
+The athenahealth Event Subscription platform is designed to provide *at least once* delivery semantics.  This means that you may, on occasion, receive duplicative notifications for the same event.  A unique ID for each event is provided in the notification Bundle in `SubscriptionStatus.notificationEvent.id` as shown in [Event Payload](#event-payload) above.  Keep in mind that you may also receive distinct events (with distinct IDs) for the same focus resource.  For example, if the same Patient is updated twice in quick succession, you will receive two separate `Patient.update` events that both contain the same Patient ID reference.  These events might arrive in two separate notification Bundles or in a single notification Bundle.
 
 &nbsp;  
 
-## Best Practices
+## 5 - Best Practices
 
-### <a name="error-handling"></a> Error Handling
+### <a name="error-handling"></a> 5.1 - Error Handling
 
 The FHIR Subscriptions IG's approach to error handling is described at [http://hl7.org/fhir/uv/subscriptions-backport/STU1/errors.html](http://hl7.org/fhir/uv/subscriptions-backport/STU1/errors.html).  Unfortunately this approach relies on incrementing a monotonic internal event counter without any gaps, which is an expensive and impractical constraint in a distributed system that processes over 100 million events per day.
 
 Instead we follow the message receipt acknowledgement approach recommended by the [WebSub protocol](https://www.w3.org/TR/websub/#content-distribution):  events are deemed to be delivered successfully if and only if the webhook returns a 2xx response code.  Failures (i.e. null or non-2xx responses) are retried for up to 1 hour.  Messages that fail repeatedly are retained in a dead letter queue where they can be replayed for up to 7 days if necessary.
 
-### <a name="keep-webhook-processing-fast"></a> Keep Webhook Processing Fast
+### <a name="keep-webhook-processing-fast"></a> 5.2 - Keep Webhook Processing Fast
 
-The athenahealth Event Subscription Platform expects your webhook to return a 2xx response code within a *timeout limit of 5 seconds*.  This is a hard limit and cannot be increased.  To ensure that your webhook responds quickly as well as to avoid duplicative processing in case of partial failures, we *strongly recommend* that you utilize a durable queueing mechanism to safely decouple event *delivery* from event *processing*.  For example, one good pattern is a webhook that persists events into a Kafka queue (or similar) where they can be consumed, inflated, and processed by a separate application.  This decoupling helps provide resilience to intermittent traffic spikes:  events can quickly be queued and acknowledged by the webhook even if the downstream processing of those events may require additional time.
+The athenahealth Event Subscription Platform expects your webhook to return a 2xx response code within a *timeout limit of 5 seconds*.  This is a hard limit and cannot be increased.  To ensure that your webhook responds quickly as well as to avoid duplicative processing in case of partial failures, we *strongly recommend* that you utilize a durable queuing mechanism to safely decouple event *delivery* from event *processing*.  For example, one good pattern is a webhook that persists events into a Kafka queue (or similar) where they can be consumed, inflated, and processed by a separate application.  This decoupling helps provide resilience to intermittent traffic spikes:  events can quickly be queued and acknowledged by the webhook even if the downstream processing of those events may require additional time.
 
 Note: Kafka is only an example here.  Many good alternatives exist depending on your architectural preferences:  Amazon SQS, Google Cloud Pub/Sub, RabbitMQ, etc.
 
-### <a name="verifying-message-authenticity"></a> Verifying Message Authenticity
+### <a name="verifying-message-authenticity"></a> 5.3 - Verifying Message Authenticity
 
-As noted above, the `X-Hub-Signature` header can be used to verify that a message received by your webhook originated from athenahealth.  For details, please see [https://www.w3.org/TR/websub/#signature-validation](https://www.w3.org/TR/websub/#signature-validation).  At present events will be signed using the `sha256` method, though this might change in future so you should check the `method` provided in the header.
+As noted above, the `X-Hub-Signature` header can be used to verify that a message received by your webhook originated from athenahealth.  For details, please see [https://www.w3.org/TR/websub/#signature-validation](https://www.w3.org/TR/websub/#signature-validation).  At present, events will be signed using the `sha256` method, though this may change in future so you should check the `method` provided in the header.
 
 &nbsp;
 
-## Appendix
+## 6 - Appendix
 
-### <a name="subscription-topics"></a> Subscription Topics
+### <a name="subscription-topics"></a> 6.1 - Subscription Topics
 
 Below is the list of event topics available for subscription in the alpha phase.  Also provided is a reference to the FHIR R4 and/or athenahealth proprietary API endpoints that can be used to retrieve the current state of the focus resource referenced in the event.  Note that some resources are available in FHIR R4 format while others are not, so the `focusResource` reference within the event notification will include one or both of the following:
 - a relative literal reference if resource is available as a FHIR R4 endpoint
@@ -310,7 +316,7 @@ Topics:
 - Appointment.update
 
 API endpoint(s) to retrieve resource content:
-- GET /v1/{practiceid}/appointments/{appointmentid}
+- [GET /v1/{practiceid}/appointments/{appointmentid}](https://docs.athenahealth.com/api/api-ref/appointment#Get-appointment-details)
 
 #### Claim
 
@@ -320,7 +326,7 @@ Topics:
 - Claim.update
 
 API endpoint(s) to retrieve resource content:
-- GET /v1/{practiceid}/claims/{claimid}
+- [GET /v1/{practiceid}/claims/{claimid}](https://docs.athenahealth.com/api/api-ref/claim#Get-individual-claim-details)
 
 #### ClinicalEncounterDiagnosis
 
@@ -330,7 +336,7 @@ Topics:
 - ClinicalEncounterDiagnosis.update
 
 API endpoint(s) to retrieve resource content:
-- GET /fhir/r4/Condition/{logicalId}
+- [GET /fhir/r4/Condition/{logicalId}](https://docs.athenahealth.com/api/fhir-r4/condition#READ_6)
 
 #### Encounter
 
@@ -340,8 +346,8 @@ Topics:
 - Encounter.signoff
 
 API endpoint(s) to retrieve resource content:
-- GET /fhir/r4/Encounter/{logicalId}
-- GET /v1/{practiceid}/chart/encounter/{encounterid}
+- [GET /fhir/r4/Encounter/{logicalId}](https://docs.athenahealth.com/api/fhir-r4/encounter#READ_6)
+- [GET /v1/{practiceid}/chart/encounter/{encounterid}](https://docs.athenahealth.com/api/api-ref/encounter-chart#Get-encounter-information)
 
 #### HistoricalMedication
 
@@ -351,8 +357,8 @@ Topics:
 - HistoricalMedication.update
 
 API endpoint(s) to retrieve resource content:
-- GET /fhir/r4/MedicationRequest/{logicalId}
-- GET /v1/{practiceid}/chart/{patientid}/medications
+- [GET /fhir/r4/MedicationRequest/{logicalId}](https://docs.athenahealth.com/api/fhir-r4/medication-request#READ_6)
+- [GET /v1/{practiceid}/chart/{patientid}/medications](https://docs.athenahealth.com/api/api-ref/medication#Get-patient's-medication-list)
 
 #### HistoricalVaccine
 
@@ -362,8 +368,8 @@ Topics:
 - HistoricalVaccine.update
 
 API endpoint(s) to retrieve resource content:
-- GET /fhir/r4/Immunization/{logicalId}
-- GET /v1/{practiceid}/chart/{patientid}/vaccines
+- [GET /fhir/r4/Immunization/{logicalId}](https://docs.athenahealth.com/api/fhir-r4/immunization#READ_6)
+- [GET /v1/{practiceid}/chart/{patientid}/vaccines](https://docs.athenahealth.com/api/api-ref/vaccines#Get-list-of-patient's-vaccines)
 
 #### ImagingResult
 
@@ -375,7 +381,7 @@ Topics:
 - ImagingResult.update
 
 API endpoint(s) to retrieve resource content:
-- GET /v1/{practiceid}/patients/{patientid}/documents/imagingresult/{imagingresultid}
+- [GET /v1/{practiceid}/patients/{patientid}/documents/imagingresult/{imagingresultid}](https://docs.athenahealth.com/api/api-ref/document-type-imaging-result#Get-patient's-imaging-result-document)
 
 #### LabResult
 
@@ -385,7 +391,7 @@ Topics:
 - LabResult.update
 
 API endpoint(s) to retrieve resource content:
-- GET /v1/{practiceid}/patients/{patientid}/documents/labresult/{labresultid}
+- [GET /v1/{practiceid}/patients/{patientid}/documents/labresult/{labresultid}](https://docs.athenahealth.com/api/api-ref/document-type-lab-result#Get-patient's-lab-result-document)
 
 #### Order
 
@@ -398,7 +404,7 @@ Topics:
 - Order.update
 
 API endpoint(s) to retrieve resource content:
-- GET /v1/{practiceid}/patients/{patientid}/documents/order/{documentid}
+- [GET /v1/{practiceid}/patients/{patientid}/documents/order/{documentid}](https://docs.athenahealth.com/api/api-ref/document-type-order#Get-patient's-order-document)
 
 #### Patient
 
@@ -409,8 +415,8 @@ Topics:
 - Patient.update
 
 API endpoint(s) to retrieve resource content:
-- GET /fhir/r4/Patient/{logicalId}
-- GET /v1/{practiceid}/patients/{patientid}
+- [GET /fhir/r4/Patient/{logicalId}](https://docs.athenahealth.com/api/fhir-r4/patient#READ_4)
+- [GET /v1/{practiceid}/patients/{patientid}](https://docs.athenahealth.com/api/api-ref/patient#Get-specific-patient-record)
 
 #### PatientCase
 
@@ -420,7 +426,7 @@ Topics:
 - PatientCase.update
 
 API endpoint(s) to retrieve resource content:
-- GET /v1/{practiceid}/patients/{patientid}/documents/patientcase/{documentid}
+- [GET /v1/{practiceid}/patients/{patientid}/documents/patientcase/{documentid}](https://docs.athenahealth.com/api/api-ref/document-type-patient-case#Get-patient-case-document-for-a-patient)
 
 #### PatientProblem
 
@@ -430,8 +436,8 @@ Topics:
 - PatientProblem.update
 
 API endpoint(s) to retrieve resource content:
-- GET /fhir/r4/Condition/{logicalId}
-- GET /v1/{practiceid}/chart/{patientid}/problems
+- [GET /fhir/r4/Condition/{logicalId}](https://docs.athenahealth.com/api/fhir-r4/condition#READ_6)
+- [GET /v1/{practiceid}/chart/{patientid}/problems](https://docs.athenahealth.com/api/api-ref/problems#Get-patient's-problem-list)
 
 #### Prescription
 
@@ -445,8 +451,8 @@ Topics:
 - Prescription.update
 
 API endpoint(s) to retrieve resource content:
-- GET /fhir/r4/MedicationRequest/{logicalId}
-- GET /v1/{practiceid}/patients/{patientid}/documents/prescription/{documentid}
+- [GET /fhir/r4/MedicationRequest/{logicalId}](https://docs.athenahealth.com/api/fhir-r4/medication-request#READ_6)
+- [GET /v1/{practiceid}/patients/{patientid}/documents/prescription/{documentid}](https://docs.athenahealth.com/api/api-ref/document-type-prescription#Get-specific-prescription-document-for-given-patient)
 
 #### Provider
 
@@ -457,8 +463,8 @@ Topics:
 - Provider.update
 
 API endpoint(s) to retrieve resource content:
-- GET /fhir/r4/Practitioner/{logicalId}
-- GET /v1/{practiceid}/providers/{providerid}
+- [GET /fhir/r4/Practitioner/{logicalId}](https://docs.athenahealth.com/api/fhir-r4/practitioner#READ_6)
+- [GET /v1/{practiceid}/providers/{providerid}](https://docs.athenahealth.com/api/api-ref/provider#Get-information-of-given-provider)
 
 #### ReferringProvider
 
@@ -469,4 +475,4 @@ Topics:
 - ReferringProvider.update
 
 API endpoint(s) to retrieve resource content:
-- GET /v1/{practiceid}/referringproviders/{referringproviderid}
+- [GET /v1/{practiceid}/referringproviders/{referringproviderid}](https://docs.athenahealth.com/api/api-ref/referring-provider#Get-information-of-given-referring-provider)
