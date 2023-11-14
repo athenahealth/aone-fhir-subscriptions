@@ -1,12 +1,12 @@
 # athenahealth Event Subscription Platform
 
-*v0.7 - 2023-06-01*
+*v0.8 - 2023-11-14*
 
 ## 1 - Background
 
 The athenahealth Event Subscription Platform makes a broad collection of healthcare domain events available for clients and partners to consume as near real-time notifications.  The platform largely conforms to the [FHIR Subscriptions R5 Backport STU 1.0.0](http://hl7.org/fhir/uv/subscriptions-backport/STU1/StructureDefinition-backport-subscription.html) implementation guide, but with a few differences, primarily around [error handling](#error-handling).  At present the only supported channel type is `rest-hook` and supported payload type is `id-only`.  Resources referenced in the event notifications include both FHIR R4 and proprietary athenahealth endpoints where applicable.  See [payload](#event-payload) below for more details.
 
-_Note: the Subscription and SubscriptionTopic endpoints referenced in this document are not yet available externally but are scheduled for alpha release in June 2023._
+_Note: the Subscription and SubscriptionTopic endpoints referenced in this document are still in development and not yet available externally._
 
 &nbsp;  
 
