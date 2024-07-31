@@ -1,6 +1,6 @@
 # athenahealth Event Subscription Platform
 
-*v0.8 - 2023-11-14*
+*v0.9 - 2024-07-31*
 
 ## 1 - Background
 
@@ -87,7 +87,7 @@ Response:
 
 ### 3.3 - Creating a Subscription
 
-You will need to create a separate Subscription per topic.  To subscribe to a topic, you can call the `POST /Subscription` endpoint.  This endpoint requires the `system/Subscription.write` scope.
+You will need to create a separate Subscription per topic and per practice.  To subscribe to a topic, you can call the `POST /Subscription` endpoint.  This endpoint requires the `system/Subscription.write` scope.
 
 Request:
 ```
@@ -106,6 +106,14 @@ curl --request POST https://api.platform.athenahealth.com/fhir/r4/Subscription \
     "end": "2022-12-31T12:00:00Z",
     "reason": "For testing",
     "criteria": "https://api.platform.athenahealth.com/fhir/r4/SubscriptionTopic/Patient.update",
+    "_criteria": {
+      "extension": [
+        {
+          "url": "http://hl7.org/fhir/uv/subscriptions-backport/StructureDefinition/backport-filter-criteria",
+          "valueString": "ah-practice=Organization/a-1.Practice-195900"
+        }
+      ]
+    },
     "channel": {
         "type": "rest-hook",
         "endpoint": "https://example.org/your-webhook",
@@ -295,7 +303,7 @@ Instead we follow the message receipt acknowledgement approach recommended by th
 
 ### <a name="keep-webhook-processing-fast"></a> 5.2 - Keep Webhook Processing Fast
 
-The athenahealth Event Subscription Platform expects your webhook to return a 2xx response code within a *timeout limit of 5 seconds*.  This is a hard limit and cannot be increased.  To ensure that your webhook responds quickly as well as to avoid duplicative processing in case of partial failures, we *strongly recommend* that you utilize a durable queuing mechanism to safely decouple event *delivery* from event *processing*.  For example, one good pattern is a webhook that persists events into a durable message queue where they can be consumed, inflated, and processed by a separate application.  This decoupling helps provide resilience to intermittent traffic spikes:  events can quickly be queued and acknowledged by the webhook even if the downstream processing of those events may require additional time.
+The athenahealth Event Subscription Platform expects your webhook to return a 2xx response code within a *timeout limit of 2 seconds*.  This is a hard limit and cannot be increased.  To ensure that your webhook responds quickly as well as to avoid duplicative processing in case of partial failures, we *strongly recommend* that you utilize a durable queuing mechanism to safely decouple event *delivery* from event *processing*.  For example, one good pattern is a webhook that persists events into a durable message queue where they can be consumed, inflated, and processed by a separate application.  This decoupling helps provide resilience to intermittent traffic spikes:  events can quickly be queued and acknowledged by the webhook even if the downstream processing of those events may require additional time.
 
 Many robust message queue implementations exist, including but not limited to:  Apache Kafka, Amazon SQS, Google Cloud Pub/Sub, RabbitMQ, etc.
 
