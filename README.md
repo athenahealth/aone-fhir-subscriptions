@@ -1,12 +1,12 @@
 # athenahealth Event Subscription Platform
 
-*v0.9 - 2024-07-31*
+*v0.10 - 2024-11-12*
 
 ## 1 - Background
 
 The athenahealth Event Subscription Platform makes a broad collection of healthcare domain events available for clients and partners to consume as near real-time notifications.  The platform largely conforms to the [FHIR Subscriptions R5 Backport STU 1.0.0](http://hl7.org/fhir/uv/subscriptions-backport/STU1/StructureDefinition-backport-subscription.html) implementation guide, but with a few differences, primarily around [error handling](#error-handling).  At present the only supported channel type is `rest-hook` and supported payload type is `id-only`.  Resources referenced in the event notifications include both FHIR R4 and proprietary athenahealth endpoints where applicable.  See [payload](#event-payload) below for more details.
 
-_Note: the Subscription and SubscriptionTopic endpoints referenced in this document are still in development and not yet available externally._
+_Note: the Subscription and SubscriptionTopic endpoints referenced in this document are only available in a limited alpha rollout at this time._
 
 &nbsp;  
 
@@ -16,7 +16,7 @@ _Note: the Subscription and SubscriptionTopic endpoints referenced in this docum
 
 In order to consume events you will need to set up a webhook endpoint to receive FHIR Subscription notification bundles from the athenahealth Event Subscription platform.  As a best practice, we recommend keeping webhooks as lightweight as possible to ensure that messages can be acknowledged quickly and reliably.  For more on this, see [best practices](#keep-webhook-processing-fast) below.
 
-Your webhook MUST use HTTPS with a valid and unexpired SSL certificate that is issued by a widely trusted certificate authority and it MUST be network-addressable from the public internet.  Authentication is handled by [verifying message signatures](#verifying-message-authenticity).
+Your webhook MUST use HTTPS with a valid and unexpired SSL certificate that is issued by a widely trusted certificate authority and it MUST be network-addressable on port 443 from the public internet.  Authentication is handled by [verifying message signatures](#verifying-message-authenticity).
 
 Included in this repo is a sample java webhook application that you can run build and run locally along with scripts to  publish sample event notification Bundles in the same format used by the athenahealth Subscription Platform.  This sample application also includes examples of how to call back to the relevant API endpoints to retrieve resource content based on the provided reference ids.
 
@@ -197,11 +197,9 @@ Alternatively, you can also find your Subscription ID in any subscription notifi
 
 As noted above, we currently support only the `id-only` payload type.  This means that events will contain a reference to the focus resource related to the event, but you will need to call back to a FHIR R4 or proprietary athenahealth API endpoint if you want to retrieve the latest content for that resource.  While this introduces an extra step, it also reduces the risk of accidental PHI exposure by keeping all access control at the athenahealth API layer.  It also helps avoid some ordering-related gotchas (see also [Event Ordering](#event-ordering) below).
 
-In addition to the focus resource ID, some events MAY also contain additional context such as the related Patient ID and/or Department ID (see example below).
+As per the Subscriptions R5 Backport IG, the first entry in each notification Bundle will always be a SubscriptionStatus resource which contains metadata about the Subscription associated with the event as well as metadata about the event(s) contained in the Bundle (see `entry[0].resource.notificationEvent[*].focus` below).  The `entry[0].resource.notificationEvent` array MAY contain multiple entries if the platform has batched multiple events for this SubscriptionTopic into a single notification.  The length of this array will always match the value of `entry[0].resource.eventsInNotification`.
 
-As per the Subscriptions R5 Backport IG, the first entry in each notification Bundle will always be a SubscriptionStatus resource which contains metadata about the Subscription associated with the event as well as metadata about the event(s) contained in the Bundle (see `entry[0].resource.notificationEvent[*].focus` below).  At present this will be the only entry in the Bundle since `full-resource` payload is not supported at this time.
-
-The `entry[0].resource.notificationEvent` array MAY contain multiple entries if the platform has batched multiple events for this SubscriptionTopic into a single notification.  The length of this array will always match the value of `entry[0].resource.eventsInNotification`.
+In addition to the SubscriptionStatus resource, the Bundle will also contain one AuditEvent resource corresponding to each entry in the `entry[0].resource.notificationEvent` array.  These AuditEvents provide some additional metadata about the event such as the user/agent whose action triggered the event as well as topic-specific extensions (where applicable) with additional context such as the related Patient, Department, etc.  For details on the supported extension types, please see [AuditEvent Extensions](#event-extensions) below.
 
 Example request that would be sent to your webhook for a `Patient.update` event notification:
 ```
@@ -243,16 +241,7 @@ curl --request POST https://example.org/your-webhook \
                   "system": "urn:athenahealth:athenanet:patient:432",
                   "value": "528595"
                 }
-              },
-              "additionalContext": [
-                {
-                  "reference": "Organization/a-432.Department-123",
-                  "identifier": {
-                    "system": "urn:athenahealth:athenanet:department:432",
-                    "value": "123"
-                  }
-                }
-              ]
+              }
             }
           ]
         },
@@ -262,6 +251,70 @@ curl --request POST https://example.org/your-webhook \
         },
         "response": {
           "status" : "200"
+        }
+      },
+      {
+        "fullUrl": "urn:uuid:c144782b-da2f-4125-a9e2-9fa4b9085a40",
+        "resource": {
+          "resourceType": "AuditEvent",
+          "id": "c144782b-da2f-4125-a9e2-9fa4b9085a40",
+          "meta": {
+            "versionId": "0"
+          },
+          // Extensions give extra metadata about the event.  These will vary by topic.  See more details below.
+          "extension": [
+            {
+              "url": "https://fhir.athena.io/StructureDefinition/ah-department",
+              "valueReference": {
+                "reference": "Organization/a-432.Department-123"
+              }
+            }
+          ],
+          "type": {
+            "system": "https://fhir.athena.io/CodeSystem/SubscriptionTopic",
+            "code": "Patient.update"
+          },
+          "recorded": "2021-03-31T16:20:12.000Z", // Timestamp of the event
+          "agent": [
+            {
+              "who": {
+                "identifier": {
+                  "value": "Athena" // username of the user who triggered the event
+                }
+              },
+              "requestor": true,
+              "location": {
+                "reference": "Organization/a-432.Department-123"
+              }
+            }
+          ],
+          "source": {
+            "observer": {
+              "reference": "Organization/a-1.Practice-432"
+            }
+          },
+          "entity": [
+            {
+              "what": {
+                // The following information is available in the focus reference as well
+                // FHIR reference (if available)
+                "reference": "Patient/a-432.E-528595",
+
+                // Non-FHIR proprietary API reference (if available)
+                "identifier": {
+                  "system": "urn:athenahealth:athenanet:patient:432",
+                  "value": "528595"
+                }
+              }
+            }
+          ]
+        },
+        "request": {
+          "method": "GET",
+          "url": "Subscription/a9c3784c-9f56-4b32-95b0-882868d39e58/$status"
+        },
+        "response": {
+          "status": "200"
         }
       }
     ]
@@ -290,6 +343,49 @@ Our recommended best practice is to avoid relying on ordering insofar as possibl
 ### <a name="duplicate-detection"></a> 4.3 - Duplicate Detection
 
 The athenahealth Event Subscription platform is designed to provide *at least once* delivery semantics.  This means that you may, on occasion, receive duplicative notifications for the same event.  A unique ID for each event is provided in the notification Bundle in `entry[0].resource.notificationEvent[*].id` as shown in [Event Payload](#event-payload) above.  Keep in mind that you may also receive distinct events (with distinct IDs) for the same focus resource.  For example, if the same Patient is updated twice in quick succession, you will receive two separate `Patient.update` events that both contain the same Patient ID reference.  These events might arrive in two separate notification Bundles or in a single notification Bundle.
+
+### <a name="event-extensions"></a> 4.4 - AuditEvent Extensions
+
+As discussed in [Event Payload](#event-payload) above, each notification Bundle includes a reference to the updated resource(s) but additionally contains an AuditEvent resource with supplementary metadata about the event.  The specific extensions supported vary by topic, but some common examples are described below.
+
+#### Patient
+
+A reference to the Patient whose data is the subject of the event.
+
+```
+{
+  "url": "http://hl7.org/fhir/5.0/StructureDefinition/extension-AuditEvent.patient",
+  "valueReference": {
+    "reference": "Patient/a-{practiceid}.E-{patientid}"
+  }
+}
+```
+
+#### Department
+
+Used to indicate the athenaNet department within which the event occurred or is related.
+
+```
+{
+  "url": "https://fhir.athena.io/StructureDefinition/ah-department",
+  "valueReference": {
+    "reference": "Organization/a-{practiceid}.Department-{departmentid}"
+  }
+}
+```
+
+#### Chart Sharing Group
+
+Used to indicate the athenaNet chart sharing group to which the event is related.
+
+```
+{
+  "url": "https://fhir.athena.io/StructureDefinition/ah-chart-sharing-group",
+  "valueReference": {
+    "reference": "Organization/a-{practiceid}.CSG-{chartgroupid}"
+  }
+}
+```
 
 &nbsp;  
 

@@ -3,7 +3,7 @@
 curl -si --location --request POST 'http://localhost:8888/process-event' \
 --header 'accept: */*' \
 --header 'Content-Type: application/fhir+json' \
---header 'X-Hub-Signature: sha256=3e14365681f764b028eb626e4193c4c19015f063c599f4fe2c35bc7a1c0026bc' \
+--header 'X-Hub-Signature: sha256=74c46018cd75fc09c7176a6ed3c98606230f826d27ae770d34a9fe4031354da7' \
 --data-raw '{
   "resourceType": "Bundle",
   "id": "a0f1df2c-ede9-4528-9ac2-1d1b36df27b2",
@@ -35,23 +35,72 @@ curl -si --location --request POST 'http://localhost:8888/process-event' \
                 "system": "urn:athenahealth:athenanet:patient:195900",
                 "value": "1"
               }
-            },
-            "additionalContext": [
-              {
-                "type": "Organization",
-                "reference": "Organization/a-195900.Department-1",
-                "identifier": {
-                  "system": "urn:athenahealth:athenanet:department:195900",
-                  "value": "1"
-                }
-              }
-            ]
+            }
           }
         ],
         "subscription": {
           "reference": "Subscription/b9f6db63-4883-41bb-9fef-97372cbd3fcd"
         },
         "topic": "https://api.platform.athenahealth.com/fhir/r4/SubscriptionTopic/Patient.update"
+      },
+      "request": {
+        "method": "GET",
+        "url": "Subscription/b9f6db63-4883-41bb-9fef-97372cbd3fcd/$status"
+      },
+      "response": {
+        "status": "200"
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:ead73c9e-ab6e-4db5-9b73-1f73cb243682",
+      "resource": {
+        "resourceType": "AuditEvent",
+        "id": "ead73c9e-ab6e-4db5-9b73-1f73cb243682",
+        "meta": {
+          "versionId": "0"
+        },
+        "extension": [
+          {
+            "url": "https://fhir.athena.io/StructureDefinition/ah-department",
+            "valueReference": {
+              "reference": "Organization/a-195900.Department-1"
+            }
+          }
+        ],
+        "type": {
+          "system": "https://fhir.athena.io/CodeSystem/SubscriptionTopic",
+          "code": "Patient.update"
+        },
+        "recorded": "2023-04-14T09:22:56Z",
+        "agent": [
+          {
+            "who": {
+              "identifier": {
+                "value": "Athena"
+              }
+            },
+            "requestor": true,
+            "location": {
+              "reference": "Organization/a-195900.Department-1"
+            }
+          }
+        ],
+        "source": {
+          "observer": {
+            "reference": "Organization/a-1.Practice-195900"
+          }
+        },
+        "entity": [
+          {
+            "what": {
+              "reference": "Patient/a-195900.E-1",
+              "identifier": {
+                "system": "urn:athenahealth:athenanet:patient:195900",
+                "value": "1"
+              }
+            }
+          }
+        ]
       },
       "request": {
         "method": "GET",
