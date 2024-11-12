@@ -372,7 +372,9 @@ Instead we follow the message receipt acknowledgement approach recommended by th
 
 ### <a name="keep-webhook-processing-fast"></a> 5.2 - Keep Webhook Processing Fast
 
-The athenahealth Event Subscription Platform expects your webhook to return a 2xx response code within a *timeout limit of 2 seconds*.  This is a hard limit and cannot be increased.  To ensure that your webhook responds quickly as well as to avoid duplicative processing in case of partial failures, we *strongly recommend* that you utilize a durable queuing mechanism to safely decouple event *delivery* from event *processing*.  For example, one good pattern is a webhook that persists events into a durable message queue where they can be consumed, inflated, and processed by a separate application.  This decoupling helps provide resilience to intermittent traffic spikes:  events can quickly be queued and acknowledged by the webhook even if the downstream processing of those events may require additional time.
+The athenahealth Event Subscription Platform expects your webhook to return a 2xx response code within a *timeout limit of 2 seconds*.  This is a hard limit and cannot be increased. If the timeout crosses 2 minutes , our delivery service will assume that your webhook is down and write to dead letter queue for sending it later.   
+
+To ensure that your webhook responds quickly as well as to avoid duplicative processing in case of partial failures, we *strongly recommend* that you utilize a durable queuing mechanism to safely decouple event *delivery* from event *processing*.  For example, one good pattern is a webhook that persists events into a durable message queue where they can be consumed, inflated, and processed by a separate application.  This decoupling helps provide resilience to intermittent traffic spikes:  events can quickly be queued and acknowledged by the webhook even if the downstream processing of those events may require additional time.
 
 Many robust message queue implementations exist, including but not limited to:  Apache Kafka, Amazon SQS, Google Cloud Pub/Sub, RabbitMQ, etc.
 
