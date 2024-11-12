@@ -197,75 +197,144 @@ Alternatively, you can also find your Subscription ID in any subscription notifi
 
 As noted above, we currently support only the `id-only` payload type.  This means that events will contain a reference to the focus resource related to the event, but you will need to call back to a FHIR R4 or proprietary athenahealth API endpoint if you want to retrieve the latest content for that resource.  While this introduces an extra step, it also reduces the risk of accidental PHI exposure by keeping all access control at the athenahealth API layer.  It also helps avoid some ordering-related gotchas (see also [Event Ordering](#event-ordering) below).
 
-In addition to the focus resource ID, some events MAY also contain additional context such as the related Patient ID and/or Department ID (see example below).
-
-As per the Subscriptions R5 Backport IG, the first entry in each notification Bundle will always be a SubscriptionStatus resource which contains metadata about the Subscription associated with the event as well as metadata about the event(s) contained in the Bundle (see `entry[0].resource.notificationEvent[*].focus` below).  At present this will be the only entry in the Bundle since `full-resource` payload is not supported at this time.
+As per the Subscriptions R5 Backport IG, the first entry in each notification Bundle will always be a SubscriptionStatus resource which contains metadata about the Subscription associated with the event as well as metadata about the event(s) contained in the Bundle (see `entry[0].resource.notificationEvent[*].focus` below).  The second entry will be `AuditEvent` resource which will have information about the event. Additional Detail of the event would be part of the `extension[]` array. Note that extensions would be different for different events. 
 
 The `entry[0].resource.notificationEvent` array MAY contain multiple entries if the platform has batched multiple events for this SubscriptionTopic into a single notification.  The length of this array will always match the value of `entry[0].resource.eventsInNotification`.
 
-Example request that would be sent to your webhook for a `Patient.update` event notification:
+Example request that would be sent to your webhook for a `Appointment.schedule` event notification:
 ```
 curl --request POST https://example.org/your-webhook \
   --header 'X-Hub-Signature: sha256=ca876e76c...' \
   --data-raw '{
-    "resourceType": "Bundle",
-    "id": "3945182f-d315-4dbf-9259-09d863c7e7da",
-    "type": "history",
-    "meta": {
-      "profile": ["http://hl7.org/fhir/uv/subscriptions-backport/StructureDefinition/backport-subscription-notification"]
-    },
-    "timestamp": "2021-03-31T16:20:01.123Z", // Note: this is notification timestamp - see below for event timestamp
-    "entry": [
-      {
-        "fullUrl": "urn:uuid:c144782b-da2f-4125-a9e2-9fa4b9085a40",
-        "resource": {
-          "resourceType": "SubscriptionStatus",
-          "id": "c144782b-da2f-4125-a9e2-9fa4b9085a40",
-          "status": "active",
-          "type": "event-notification",
-          "eventsSinceSubscriptionStart": "1",
-          "eventsInNotification": 1,
-          "subscription": {
-            "reference": "Subscription/a9c3784c-9f56-4b32-95b0-882868d39e58"
-          },
-          "topic": "https://api.platform.athenahealth.com/fhir/r4/SubscriptionTopic/Patient.update",
-          "notificationEvent": [
-            {
-              "eventNumber": "1",
-              "id": "cb6cc377-ee38-31ba-9482-f93f821cd169", // Unique UUID for the event
-              "timestamp": "2021-03-31T16:20:12.000Z", // Timestamp of the event
-              "focus": {
-                // FHIR reference (if available)
-                "reference": "Patient/a-432.E-528595",
-
-                // Non-FHIR proprietary API reference (if available)
-                "identifier": {
-                  "system": "urn:athenahealth:athenanet:patient:432",
-                  "value": "528595"
-                }
-              },
-              "additionalContext": [
-                {
-                  "reference": "Organization/a-432.Department-123",
-                  "identifier": {
-                    "system": "urn:athenahealth:athenanet:department:432",
-                    "value": "123"
-                  }
-                }
-              ]
-            }
-          ]
-        },
-        "request": {
-          "method": "GET",
-          "url": "Subscription/a9c3784c-9f56-4b32-95b0-882868d39e58/$status"
-        },
-        "response": {
-          "status" : "200"
-        }
-      }
+  "resourceType": "Bundle",
+  "id": "511f8793-8929-3be9-83ef-37e948669cc8",
+  "meta": {
+    "profile": [
+      "http://hl7.org/fhir/uv/subscriptions-backport/StructureDefinition/backport-subscription-notification"
     ]
-  }'
+  },
+  "type": "history",
+  "timestamp": "2024-09-30T10:01:34.857+00:00", // Note: this is notification timestamp
+  "entry": [
+    {
+      "fullUrl": "urn:uuid:e26e3853-669e-4440-81d9-8c37a0bf22c7",
+      "resource": {
+        "resourceType": "SubscriptionStatus",
+        "id": "e26e3853-669e-4440-81d9-8c37a0bf22c7",
+        "status": "active",
+        "type": "event-notification",
+        "eventsSinceSubscriptionStart": "1",
+        "eventsInNotification": 1,
+        "subscription": {
+          "reference": "Subscription/8a5ce763-4e86-30d2-acbe-80f05d26c633"
+        },
+        "notificationEvent": [
+          {
+            "id": "cc4cddb7-98f3-33f7-96f4-e5b7f4314748", // Unique UUID for the event
+            "eventNumber": "1",
+            "timestamp": "2022-04-02T18:11:33.000+00:00", // Timestamp of the event
+            "focus": {
+              // FHIR reference (if available)
+              "reference": "Appointment/a-432.123",
+              // Non-FHIR proprietary API reference (if available)
+              "identifier": {
+                "system": "urn:athenahealth:athenanet:appointment:432",
+                "value": "123"
+              }
+            }
+          }
+        ],
+        
+        "topic": "https://api.fhir.athena.io/fhir/r4/SubscriptionTopic/TestResource.connection-check"
+      },
+      "request": {
+        "method": "GET",
+        "url": "Subscription/8a5ce763-4e86-30d2-acbe-80f05d26c633/$status"
+      },
+      "response": {
+        "status": "200"
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:cc4cddb7-98f3-33f7-96f4-e5b7f4314748",
+      "resource": {
+        "resourceType": "AuditEvent",
+        "id": "cc4cddb7-98f3-33f7-96f4-e5b7f4314748", // Unique UUID for the event
+        "meta": {
+          "versionId": "0" // Version of the Event
+        },
+        //Extensions give extra information about the event 
+        "extension": [
+          //Department ID associated with the Appointment
+          {
+            "url": "https://fhir.athena.io/StructureDefinition/ah-department",
+            "valueReference": {
+              "reference": "Organization/a-432.Department-123444"
+            }
+          },
+          //Patient ID associated with the Event
+          {
+            "url": "https://hl7.org/fhir/5.0/StructureDefinition/extension-AuditEvent.patient",
+            "valueReference": {
+              "reference": "Patient/a-432.E-123"
+            }
+          },
+          //Chart Sharing Group ID associated with the Event
+          {
+            "url": "https://fhir.athena.io/StructureDefinition/ah-chart-sharing-group",
+            "valueReference": {
+              "reference": "Organization/a-432.CSG-12345"
+            }
+          }
+        ],
+        "type": {
+          "system": "https://fhir.athena.io/CodeSystem/SubscriptionTopic",
+          "code": "Appointment.schedule"
+        },
+        "recorded": "2022-04-02T18:11:33Z",
+        "agent": [
+          {
+            "who": {
+              "identifier": {
+                "value": "Athena" // Agent who caused the event. Could be user or a an API key
+              }
+            },
+            "requestor": true,
+            "location": {
+              "reference": "Organization/a-432.Department-1234" // The Location where the change has happened
+            }
+          }
+        ],
+        "source": {
+          "observer": {
+            "reference": "Organization/a-1.Practice-432" // Context where the change has happened
+          }
+        },
+        "entity": [
+          {
+            "what": {
+              //The following information is available in the focus reference as well
+              // FHIR reference (if available)
+              "reference": "Appointment/a-432.123",
+              // Non-FHIR proprietary API reference (if available)
+              "identifier": {
+                "system": "urn:athenahealth:athenanet:appointment:432",
+                "value": "123"
+              }
+            }
+          }
+        ]
+      },
+      "request": {
+        "method": "GET",
+        "url": "Subscription/8a5ce763-4e86-30d2-acbe-80f05d26c633/$status"
+      },
+      "response": {
+        "status": "200"
+      }
+    }
+  ]
+}'
 ```
 
 Response expected from your webhook if received successfully:
@@ -303,7 +372,9 @@ Instead we follow the message receipt acknowledgement approach recommended by th
 
 ### <a name="keep-webhook-processing-fast"></a> 5.2 - Keep Webhook Processing Fast
 
-The athenahealth Event Subscription Platform expects your webhook to return a 2xx response code within a *timeout limit of 2 seconds*.  This is a hard limit and cannot be increased.  To ensure that your webhook responds quickly as well as to avoid duplicative processing in case of partial failures, we *strongly recommend* that you utilize a durable queuing mechanism to safely decouple event *delivery* from event *processing*.  For example, one good pattern is a webhook that persists events into a durable message queue where they can be consumed, inflated, and processed by a separate application.  This decoupling helps provide resilience to intermittent traffic spikes:  events can quickly be queued and acknowledged by the webhook even if the downstream processing of those events may require additional time.
+The athenahealth Event Subscription Platform expects your webhook to return a 2xx response code within a *timeout limit of 2 seconds*.  This is a hard limit and cannot be increased. If the timeout crosses 2 minutes , our delivery service will assume that your webhook is down and write to dead letter queue for sending it later.   
+
+To ensure that your webhook responds quickly as well as to avoid duplicative processing in case of partial failures, we *strongly recommend* that you utilize a durable queuing mechanism to safely decouple event *delivery* from event *processing*.  For example, one good pattern is a webhook that persists events into a durable message queue where they can be consumed, inflated, and processed by a separate application.  This decoupling helps provide resilience to intermittent traffic spikes:  events can quickly be queued and acknowledged by the webhook even if the downstream processing of those events may require additional time.
 
 Many robust message queue implementations exist, including but not limited to:  Apache Kafka, Amazon SQS, Google Cloud Pub/Sub, RabbitMQ, etc.
 
