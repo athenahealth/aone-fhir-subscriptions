@@ -1,6 +1,6 @@
 # athenahealth Event Subscription Platform
 
-*v0.10 - 2024-11-12*
+*v0.11 - 2024-11-19*
 
 ## 1 - Background
 
@@ -199,7 +199,7 @@ As noted above, we currently support only the `id-only` payload type.  This mean
 
 As per the Subscriptions R5 Backport IG, the first entry in each notification Bundle will always be a SubscriptionStatus resource which contains metadata about the Subscription associated with the event as well as metadata about the event(s) contained in the Bundle (see `entry[0].resource.notificationEvent[*].focus` below).  The `entry[0].resource.notificationEvent` array MAY contain multiple entries if the platform has batched multiple events for this SubscriptionTopic into a single notification.  The length of this array will always match the value of `entry[0].resource.eventsInNotification`.
 
-In addition to the SubscriptionStatus resource, the Bundle will also contain one AuditEvent resource corresponding to each entry in the `entry[0].resource.notificationEvent` array.  These AuditEvents provide some additional metadata about the event such as the user/agent whose action triggered the event as well as topic-specific extensions (where applicable) with additional context such as the related Patient, Department, etc.  For details on the supported extension types, please see [AuditEvent Extensions](#event-extensions) below.
+In addition to the SubscriptionStatus resource, the Bundle will also contain one AuditEvent resource corresponding to each entry in the `entry[0].resource.notificationEvent` array.  The event ID provided in `entry[0].resource.notificationEvent[*].id` matches the `AuditEvent.id` of the corresponding AuditEvent contained in the Bundle.  These AuditEvents provide some additional metadata about the event such as the user/agent whose action triggered the event as well as topic-specific extensions (where applicable) with additional context such as the related Patient, Department, etc.  For details on the supported extension types, please see [AuditEvent Extensions](#event-extensions) below.
 
 Example request that would be sent to your webhook for a `Patient.update` event notification:
 ```
@@ -230,7 +230,7 @@ curl --request POST https://example.org/your-webhook \
           "notificationEvent": [
             {
               "eventNumber": "1",
-              "id": "cb6cc377-ee38-31ba-9482-f93f821cd169", // Unique UUID for the event
+              "id": "cb6cc377-ee38-31ba-9482-f93f821cd169", // Corresponds to AuditEvent.id below
               "timestamp": "2021-03-31T16:20:12.000Z", // Timestamp of the event
               "focus": {
                 // FHIR reference (if available)
@@ -254,10 +254,10 @@ curl --request POST https://example.org/your-webhook \
         }
       },
       {
-        "fullUrl": "urn:uuid:c144782b-da2f-4125-a9e2-9fa4b9085a40",
+        "fullUrl": "urn:uuid:cb6cc377-ee38-31ba-9482-f93f821cd169",
         "resource": {
           "resourceType": "AuditEvent",
-          "id": "c144782b-da2f-4125-a9e2-9fa4b9085a40",
+          "id": "cb6cc377-ee38-31ba-9482-f93f821cd169",
           "meta": {
             "versionId": "0"
           },
