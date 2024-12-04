@@ -142,7 +142,21 @@ Response:
 
 The `X-Hub-Secret` header is optional but _strongly recommended_ to allow your webhook to verify authenticity of the notification messages received and ensure that the payload originated from athenahealth.  If provided, this secret will be used to generate an HMAC signature for each outbound notification as described at [https://www.w3.org/TR/websub/#signing-content](https://www.w3.org/TR/websub/#signing-content).
 
-### 3.4 - Deleting a Subscription
+### 3.4 - Subscription Creation Rules 
+
+a. Consumer can subscribe to only one event per subscription. <br />
+   &nbsp;&nbsp;&nbsp; To subscribe to multiple events , repeat the subscription process for each event. 
+   
+b. Consumer can subscribe to only one context per subscription. <br />
+   &nbsp;&nbsp;&nbsp; To subscribe to multiple contexts , repeat the subscription process for each context.  
+   
+c. Consumer cannot use the same webhook URL to subscribe to the same context and event more than once. 
+
+d. Consumer can use either a single Webhook URL for all their subscriptions ( for different context and/or event ) or multiple Webhook URLs across subscriptions. <br />
+   &nbsp;&nbsp;&nbsp; For Example: If you need to set up 10 subscriptions, you can either set up one Webhook URL for all 10 subscriptions, or a different Webhook URL for each of the 10 
+   subscriptions, or any combination such as 4 different Webhook URLs across those 10 subscriptions. The setup can be tailored to the requirements, use case, or technical feasibility.
+
+### 3.5 - Deleting a Subscription
 
 To unsubscribe from a topic you will need to call the `DELETE /Subscription/{id}` endpoint.  This endpoint requires the `system/Subscription.write` scope.
 
@@ -156,7 +170,7 @@ Response:
 204 No Content
 ```
 
-### 3.5 - Listing your Subscriptions
+### 3.6 - Listing your Subscriptions
 
 If you do not know your Subscription ID, you can use the `GET /Subscription` search to find it.  This endpoint requires the `system/Subscription.read` scope.
 
@@ -188,20 +202,6 @@ Response:
 ```
 
 Alternatively, you can also find your Subscription ID in any subscription notification Bundle under `entry[0].resource.subscription.reference` (see example [event payload](#event-payload) below).
-
-### 3.6 - Subscription Creation Rules 
-
-a. Consumer can subscribe to only one event per subscription. <br />
-   &nbsp;&nbsp;&nbsp; To subscribe to multiple events , repeat the subscription process for each event. 
-   
-b. Consumer can subscribe to only one context per subscription. <br />
-   &nbsp;&nbsp;&nbsp; To subscribe to multiple contexts , repeat the subscription process for each context.  
-   
-c. Consumer cannot use the same webhook URL to subscribe to the same context and event more than once. 
-
-d. Consumer can use either a single Webhook URL for all their subscriptions ( for different context and/or event ) or multiple Webhook URLs across subscriptions. <br />
-   &nbsp;&nbsp;&nbsp; For Example: If you need to set up 10 subscriptions, you can either set up one Webhook URL for all 10 subscriptions, or a different Webhook URL for each of the 10 
-   subscriptions, or any combination such as 4 different Webhook URLs across those 10 subscriptions. The setup can be tailored to the requirements, use case, or technical feasibility.
 
 ### 3.7 - Subscription Updation Rules 
 
@@ -420,7 +420,7 @@ Instead we follow the message receipt acknowledgement approach recommended by th
 
 ### <a name="keep-webhook-processing-fast"></a> 5.2 - Keep Webhook Processing Fast
 
-The athenahealth Event Subscription Platform expects your webhook to return a 2xx response code within a *timeout limit of 2 seconds*.  This is a hard limit and cannot be increased. If the timeout crosses 2 seconds, our delivery service will assume that your webhook is down and will retry every 5 minutes for an hour and every half an hour there after.
+The athenahealth Event Subscription Platform expects your webhook to return a 2xx response code within a *timeout limit of 2 seconds*.  This is a hard limit and cannot be increased. If the timeout crosses 2 seconds, our delivery service will assume that your webhook is down and will retry failures and timeouts periodically for up to 7 days.
 
 To ensure that your webhook responds quickly as well as to avoid duplicative processing in case of partial failures, we *strongly recommend* that you utilize a durable queuing mechanism to safely decouple event *delivery* from event *processing*.  For example, one good pattern is a webhook that persists events into a durable message queue where they can be consumed, inflated, and processed by a separate application.  This decoupling helps provide resilience to intermittent traffic spikes:  events can quickly be queued and acknowledged by the webhook even if the downstream processing of those events may require additional time.
 
