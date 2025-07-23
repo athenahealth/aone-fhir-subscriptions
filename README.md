@@ -147,7 +147,7 @@ Response:
 
 The `X-Hub-Secret` header is optional but _strongly recommended_ to allow your webhook to verify authenticity of the notification messages received and ensure that the payload originated from athenahealth.  If provided, this secret will be used to generate an HMAC signature for each outbound notification as described at [https://www.w3.org/TR/websub/#signing-content](https://www.w3.org/TR/websub/#signing-content).
 
-Events can be filtered by the `_criteria` object. Each filter should be added in an extension. In the above example , the consumer has subscribed to 2 contexts and 3 departments. The AND condition is implied for these two filters. (`ah-practice` filter AND `ah-department`). Both the filter condition need to be true for the created event to be delivered to conusmers.  <br /> 
+Events can be filtered by the `_criteria` object. Each filter should be added in an extension. In the above example , the consumer has subscribed to 2 contexts and 3 departments. The AND condition is implied for these two filters. (`ah-practice` filter AND `ah-department`). Both the filter condition need to be true for the created event to be delivered to consumers.  <br /> 
 
 The filter should be invoked via this ` "valueString": "<filter-parameter>=<value1>,<value2>,<value3> ..... <value2000>" ` format.
 The valueString should follow the regex applicable for that filter. 
@@ -193,10 +193,8 @@ b. Consumer can subscribe to only one event per subscription. <br />
    &nbsp;&nbsp;&nbsp; To subscribe to multiple events , repeat the subscription process for each event. 
    
 c. Consumer can subscribe to multiple contexts per subscription. <br />
-   
-d. Consumer cannot use the same webhook URL to subscribe to the same context and event more than once. 
 
-e. Consumer can use either a single Webhook URL for all their subscriptions ( for different context and/or event ) or multiple Webhook URLs across subscriptions. <br />
+d. Consumer can use either a single Webhook URL for all their subscriptions ( for different context and/or event ) or multiple Webhook URLs across subscriptions. <br />
    &nbsp;&nbsp;&nbsp; For Example: If you need to set up 10 subscriptions, you can either set up one Webhook URL for all 10 subscriptions, or a different Webhook URL for each of the 10 
    subscriptions, or any combination such as 4 different Webhook URLs across those 10 subscriptions. The setup can be tailored to the requirements, use case, or technical feasibility.
 
