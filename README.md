@@ -152,19 +152,37 @@ Events can be filtered by the `_criteria` object. Each filter should be added in
 The filter should be invoked via this ` "valueString": "<filter-parameter>=<value1>,<value2>,<value3> ..... <value2000>" ` format.
 The valueString should follow the regex applicable for that filter. 
 
-Currently `ah-practice` and `ah-department` filters are available. <br />
+<table>
+    <caption>Filters Available </caption>
+    <thead>
+        <tr>
+            <th>Filter</th>
+            <th>Regex</th>
+            <th>URL</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>ah-practice</td>
+            <td>ah-practice=Organization/a-1.Practice-[practiceId]</td>
+            <td>https://fhir.athena.io/SearchParameter/ah-practice</td>
+        </tr>
+        <tr>
+            <td>ah-department</td>
+            <td>ah-department=Organization/a-[practiceId].Department-[deptId]</td>
+            <td>https://fhir.athena.io/SearchParameter/ah-department</td>
+        </tr>
+    </tbody> 
+</table>           
+<br />
 
-`ah-practice` regex => `ah-practice=Organization/a-1.Practice-[practiceId]`
-`ah-department` regex => `ah-department=Organization/a-[practiceId].Department-[deptId]`
+Few points on filter 
 
-Each filter needs to be 
-
-a. It will take upto 15 minutes for the Filter creation/updation to take effect. <br />
-b. Maximum number of values supported in a filter parameter is 2000. <br />
-c. OR condition is not enabled across filter parameters. Eg: PRACTICE or DEPARTMENT. <br />
-d. AND condition is not supported inside a single filter parameter. <br />
-e. If all departments of a contexts need to be subscribed , use `*`  Eg: ah-department=Organization/a-<CONTEXT_ID>.Department-* <br />
-f. If `ah-department` filter is used , make sure that all contexts that are in the ah-department values are present in the `ah-practice` filter . Else due to AND condition the events could be missed <br />
+a. Maximum number of values supported in a filter parameter is 2000. <br />
+b. OR condition is not enabled across filter parameters. Eg: PRACTICE or DEPARTMENT. <br />
+c. AND condition is not supported inside a single filter parameter. <br />
+d. If all departments of a context need to be subscribed , use `*`  Eg: ah-department=Organization/a-<CONTEXT_ID>.Department-* <br />
+e. If `ah-department` filter is used , make sure that all contexts that are in the ah-department values are present in the `ah-practice` filter . Else due to AND condition the events could be missed <br />
    
 
 ### 3.4 - Subscription Creation Rules 
@@ -182,7 +200,76 @@ e. Consumer can use either a single Webhook URL for all their subscriptions ( fo
    &nbsp;&nbsp;&nbsp; For Example: If you need to set up 10 subscriptions, you can either set up one Webhook URL for all 10 subscriptions, or a different Webhook URL for each of the 10 
    subscriptions, or any combination such as 4 different Webhook URLs across those 10 subscriptions. The setup can be tailored to the requirements, use case, or technical feasibility.
 
-### 3.5 - Deleting a Subscription
+### 3.5 - Updating a Filter in Subscription
+
+To update an existing subscription of a topic, you should call the `PUT /Subscription/{id}` endpoint.  This endpoint requires the `system/Subscription.write` scope.
+
+Request:
+```
+curl --request PUT https://api.platform.athenahealth.com/fhir/r4/Subscription \
+  --header 'Authorization: Bearer <token>' \
+  --header 'Content-Type: application/json' \
+  --header 'X-Hub-Secret: <random-shared-secret>' \
+  --data-raw '{
+    "resourceType": "Subscription",
+    "id": "a9c3784c-9f56-4b32-95b0-882868d39e58",
+    "meta": {
+        "profile": [
+            "http://hl7.org/fhir/uv/subscriptions-backport/StructureDefinition/backport-subscription"
+        ]
+    },
+    "status": "requested",
+    "end": "2022-12-31T12:00:00Z",
+    "reason": "For testing",
+    "criteria": "https://api.platform.athenahealth.com/fhir/r4/SubscriptionTopic/Patient.update",
+    "_criteria": {
+      "extension": [
+        {
+          "url": "http://hl7.org/fhir/uv/subscriptions-backport/StructureDefinition/backport-filter-criteria",
+          "valueString": "ah-practice=Organization/a-1.Practice-195000,Organization/a-1.Practice-195001,Organization/a-1.Practice-195002"
+        },
+        {
+          "url": "http://hl7.org/fhir/uv/subscriptions-backport/StructureDefinition/backport-filter-criteria",
+          "valueString": "ah-department=Organization/a-195000.Department-1,Organization/a-195000.Department-12,Organization/a-195001.Department-1"
+        },
+        
+      ]
+    },
+    "channel": {
+        "type": "rest-hook",
+        "endpoint": "https://example.org/your-webhook",
+        "payload": "application/fhir+json",
+        "_payload": {
+            "extension": [
+                {
+                    "url": "http://hl7.org/fhir/uv/subscriptions-backport/StructureDefinition/backport-payload-content",
+                    "valueCode": "id-only"
+                }
+            ]
+        }
+    }
+}'
+```
+
+Response:
+```
+201 Created
+{
+  "resourceType": "Subscription",
+  "id": "a9c3784c-9f56-4b32-95b0-882868d39e58",
+  ...
+}
+```
+
+Here the practice filter is updated. A new context is added in the request. While adding new contexts , make sure that you have the access to these contexts.
+Departments can be added or removed in the same way. Remove the appropriate extension object from the array if an entire filter has to be removed.
+
+### 3.6 - Subscription Updation Rules 
+
+a. Consumer cannot update the webhook URL of existing subscription. <br /> &nbsp;&nbsp;&nbsp; If required, you can delete the existing subscription and create a new one. <br />
+b. It will take upto 15 minutes for the Filter creation/updation to take effect. <br />
+
+### 3.7 - Deleting a Subscription
 
 To unsubscribe from a topic you will need to call the `DELETE /Subscription/{id}` endpoint.  This endpoint requires the `system/Subscription.write` scope.
 
@@ -196,7 +283,7 @@ Response:
 204 No Content
 ```
 
-### 3.6 - Listing your Subscriptions
+### 3.8 - Listing your Subscriptions
 
 If you do not know your Subscription ID, you can use the `GET /Subscription` search to find it.  This endpoint requires the `system/Subscription.read` scope.
 
@@ -229,9 +316,7 @@ Response:
 
 Alternatively, you can also find your Subscription ID in any subscription notification Bundle under `entry[0].resource.subscription.reference` (see example [event payload](#event-payload) below).
 
-### 3.7 - Subscription Updation Rules 
 
-a. Consumer cannot update the webhook URL of existing subscription. <br /> &nbsp;&nbsp;&nbsp; If required, you can delete the existing subscription and create a new one.
 
 
 &nbsp;  
