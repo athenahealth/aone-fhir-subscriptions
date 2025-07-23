@@ -1,6 +1,6 @@
 # athenahealth Event Subscription Platform
 
-*v0.12 - 2025-07-19*
+*v0.12 - 2025-07-23*
 
 ## 1 - Background
 
@@ -555,6 +555,9 @@ Topics:
 - AdminDocument.delete
 - AdminDocument.remove-after-reclassify
 
+Filters Applicable:
+- ah-practice
+
 API endpoint(s) to retrieve resource content:
 - [GET /v1/{practiceid}/documents/admin/{adminid}](https://docs.athenahealth.com/api/api-ref/document-type-admin-document#Get-specific-admin-document-without-specifying-patient-ID)
 
@@ -570,6 +573,10 @@ Topics:
 - Appointment.unfreeze
 - Appointment.update
 
+Filters Applicable:
+- ah-practice
+- ah-department
+
 API endpoint(s) to retrieve resource content:
 - [GET /v1/{practiceid}/appointments/{appointmentid}](https://docs.athenahealth.com/api/api-ref/appointment#Get-appointment-details)
 
@@ -579,6 +586,10 @@ Topics:
 - Claim.create
 - Claim.delete
 - Claim.update
+
+Filters Applicable:
+- ah-practice (for all)
+- ah-department (only for delete)  
 
 API endpoint(s) to retrieve resource content:
 - [GET /v1/{practiceid}/claims/{claimid}](https://docs.athenahealth.com/api/api-ref/claim#Get-individual-claim-details)
@@ -591,6 +602,9 @@ Topics:
 - ClinicalDocument.delete
 - ClinicalDocument.remove-after-reclassify
 
+Filters Applicable:
+- ah-practice 
+
 API endpoint(s) to retrieve resource content:
 - [GET /v1/{practiceid}/patients/{patientid}/documents/clinicaldocument/{clinicaldocumentid}](https://docs.athenahealth.com/api/api-ref/document-type-clinical-document#Get-patient's-clinical-document)  
 
@@ -601,6 +615,10 @@ Topics:
 - ClinicalEncounterDiagnosis.delete
 - ClinicalEncounterDiagnosis.update
 
+Filters Applicable:
+- ah-practice
+- ah-department
+
 API endpoint(s) to retrieve resource content:
 - [GET /fhir/r4/Condition/{logicalId}](https://docs.athenahealth.com/api/fhir-r4/condition#READ_6)
 
@@ -610,6 +628,10 @@ Topics:
 - Encounter.check-in
 - Encounter.reopen
 - Encounter.signoff
+
+Filters Applicable:
+- ah-practice
+- ah-department
 
 API endpoint(s) to retrieve resource content:
 - [GET /fhir/r4/Encounter/{logicalId}](https://docs.athenahealth.com/api/fhir-r4/encounter#READ_6)
@@ -622,6 +644,10 @@ Topics:
 - HistoricalMedication.delete
 - HistoricalMedication.update
 
+Filters Applicable:
+- ah-practice
+- ah-department
+
 API endpoint(s) to retrieve resource content:
 - [GET /fhir/r4/MedicationRequest/{logicalId}](https://docs.athenahealth.com/api/fhir-r4/medication-request#READ_6)
 - [GET /v1/{practiceid}/chart/{patientid}/medications](https://docs.athenahealth.com/api/api-ref/medication#Get-patient's-medication-list)
@@ -632,6 +658,10 @@ Topics:
 - HistoricalVaccine.create
 - HistoricalVaccine.delete
 - HistoricalVaccine.update
+
+Filters Applicable:
+- ah-practice
+- ah-department
 
 API endpoint(s) to retrieve resource content:
 - [GET /fhir/r4/Immunization/{logicalId}](https://docs.athenahealth.com/api/fhir-r4/immunization#READ_6)
@@ -646,6 +676,10 @@ Topics:
 - ImagingResult.reopen
 - ImagingResult.update
 
+Filters Applicable:
+- ah-practice
+- ah-department
+
 API endpoint(s) to retrieve resource content:
 - [GET /v1/{practiceid}/patients/{patientid}/documents/imagingresult/{imagingresultid}](https://docs.athenahealth.com/api/api-ref/document-type-imaging-result#Get-patient's-imaging-result-document)
 
@@ -655,6 +689,10 @@ Topics:
 - LabResult.close
 - LabResult.create
 - LabResult.update
+
+Filters Applicable:
+- ah-practice
+- ah-department
 
 API endpoint(s) to retrieve resource content:
 - [GET /v1/{practiceid}/patients/{patientid}/documents/labresult/{labresultid}](https://docs.athenahealth.com/api/api-ref/document-type-lab-result#Get-patient's-lab-result-document)
@@ -666,6 +704,9 @@ Topics:
 - MedicalRecord.update
 - MedicalRecord.delete
 - MedicalRecord.remove-after-reclassify
+
+Filters Applicable:
+- ah-practice
 
 API endpoint(s) to retrieve resource content:
 - [GET /v1/{practiceid}/patients/{patientid}/documents/medicalrecord/{medicalrecordid}](https://docs.athenahealth.com/api/api-ref/document-type-medical-record#Get-patient's-medical-record-document)
@@ -680,6 +721,10 @@ Topics:
 - Order.submit
 - Order.update
 
+Filters Applicable:
+- ah-practice
+- ah-department
+
 API endpoint(s) to retrieve resource content:
 - [GET /v1/{practiceid}/patients/{patientid}/documents/order/{documentid}](https://docs.athenahealth.com/api/api-ref/document-type-order#Get-patient's-order-document)
 
@@ -690,6 +735,10 @@ Topics:
 - Patient.delete
 - Patient.merge
 - Patient.update
+
+Filters Applicable:
+- ah-practice
+- ah-department
 
 API endpoint(s) to retrieve resource content:
 - [GET /fhir/r4/Patient/{logicalId}](https://docs.athenahealth.com/api/fhir-r4/patient#READ_4)
@@ -702,6 +751,10 @@ Topics:
 - PatientCase.create
 - PatientCase.update
 
+Filters Applicable:
+- ah-practice
+- ah-department
+
 API endpoint(s) to retrieve resource content:
 - [GET /v1/{practiceid}/patients/{patientid}/documents/patientcase/{documentid}](https://docs.athenahealth.com/api/api-ref/document-type-patient-case#Get-patient-case-document-for-a-patient)
 
@@ -711,6 +764,10 @@ Topics:
 - PatientProblem.create
 - PatientProblem.delete
 - PatientProblem.update
+
+Filters Applicable:
+- ah-practice
+- ah-department
 
 API endpoint(s) to retrieve resource content:
 - [GET /fhir/r4/Condition/{logicalId}](https://docs.athenahealth.com/api/fhir-r4/condition#READ_6)
@@ -727,6 +784,10 @@ Topics:
 - Prescription.reopen
 - Prescription.update
 
+Filters Applicable:
+- ah-practice
+- ah-department
+
 API endpoint(s) to retrieve resource content:
 - [GET /fhir/r4/MedicationRequest/{logicalId}](https://docs.athenahealth.com/api/fhir-r4/medication-request#READ_6)
 - [GET /v1/{practiceid}/patients/{patientid}/documents/prescription/{documentid}](https://docs.athenahealth.com/api/api-ref/document-type-prescription#Get-specific-prescription-document-for-given-patient)
@@ -738,6 +799,10 @@ Topics:
 - Provider.delete
 - Provider.undelete
 - Provider.update
+
+Filters Applicable:
+- ah-practice (for all)
+- ah-department (only for undelete)
 
 API endpoint(s) to retrieve resource content:
 - [GET /fhir/r4/Practitioner/{logicalId}](https://docs.athenahealth.com/api/fhir-r4/practitioner#READ_6)
@@ -751,5 +816,10 @@ Topics:
 - ReferringProvider.undelete
 - ReferringProvider.update
 
+Filters Applicable:
+- ah-practice
+- ah-department
+
 API endpoint(s) to retrieve resource content:
 - [GET /v1/{practiceid}/referringproviders/{referringproviderid}](https://docs.athenahealth.com/api/api-ref/referring-provider#Get-information-of-given-referring-provider)
+
