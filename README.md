@@ -547,6 +547,17 @@ Below is the list of event topics available for subscription in the alpha phase.
 - a relative literal reference if resource is available as a FHIR R4 endpoint
 - a logical reference (identifier) if resource is available in athenahealth proprietary format
 
+#### AdminDocument  [Alpha]
+
+Topics:
+- AdminDocument.create
+- AdminDocument.update
+- AdminDocument.delete
+- AdminDocument.remove-after-reclassify
+
+API endpoint(s) to retrieve resource content:
+- [GET /v1/{practiceid}/documents/admin/{adminid}](https://docs.athenahealth.com/api/api-ref/document-type-admin-document#Get-specific-admin-document-without-specifying-patient-ID)
+
 #### Appointment
 
 Topics:
@@ -571,6 +582,17 @@ Topics:
 
 API endpoint(s) to retrieve resource content:
 - [GET /v1/{practiceid}/claims/{claimid}](https://docs.athenahealth.com/api/api-ref/claim#Get-individual-claim-details)
+
+#### ClinicalDocument  [Alpha]
+
+Topics:
+- ClinicalDocument.create
+- ClinicalDocument.update
+- ClinicalDocument.delete
+- ClinicalDocument.remove-after-reclassify
+
+API endpoint(s) to retrieve resource content:
+- [GET /v1/{practiceid}/patients/{patientid}/documents/clinicaldocument/{clinicaldocumentid}](https://docs.athenahealth.com/api/api-ref/document-type-clinical-document#Get-patient's-clinical-document)  
 
 #### ClinicalEncounterDiagnosis
 
@@ -636,6 +658,17 @@ Topics:
 
 API endpoint(s) to retrieve resource content:
 - [GET /v1/{practiceid}/patients/{patientid}/documents/labresult/{labresultid}](https://docs.athenahealth.com/api/api-ref/document-type-lab-result#Get-patient's-lab-result-document)
+
+#### MedicalRecord  [Alpha]
+
+Topics:
+- MedicalRecord.create
+- MedicalRecord.update
+- MedicalRecord.delete
+- MedicalRecord.remove-after-reclassify
+
+API endpoint(s) to retrieve resource content:
+- [GET /v1/{practiceid}/patients/{patientid}/documents/medicalrecord/{medicalrecordid}](https://docs.athenahealth.com/api/api-ref/document-type-medical-record#Get-patient's-medical-record-document)
 
 #### Order
 
