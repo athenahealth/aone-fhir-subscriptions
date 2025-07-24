@@ -147,10 +147,12 @@ Response:
 
 The `X-Hub-Secret` header is optional but _strongly recommended_ to allow your webhook to verify authenticity of the notification messages received and ensure that the payload originated from athenahealth.  If provided, this secret will be used to generate an HMAC signature for each outbound notification as described at [https://www.w3.org/TR/websub/#signing-content](https://www.w3.org/TR/websub/#signing-content).
 
-Events can be filtered by the `_criteria` object. Each filter should be added in an extension. In the above example , the consumer has subscribed to 2 contexts and 3 departments. The AND condition is implied for these two filters. (`ah-practice` filter AND `ah-department`). Both the filter condition need to be true for the created event to be delivered to consumers.  <br /> 
+Events can be filtered using the _criteria object, where each filter is added as an extension. In the example above, the consumer has subscribed to two contexts and three departments. An implicit AND condition applies between these filters (ah-practice AND ah-department), meaning both filter conditions must be satisfied for the event to be delivered to the consumer.
 
-The filter should be invoked via this ` "valueString": "<filter-parameter>=<value1>,<value2>,<value3> ..... <value2000>" ` format.
-The valueString should follow the regex applicable for that filter. 
+Filters should be specified using the following format:
+
+` "valueString": "<filter-parameter>=<value1>,<value2>,<value3>, ..., <value2000>" `
+The valueString must conform to the regex pattern defined for the respective filter.
 
 <table>
     <caption>Filters Available </caption>
@@ -176,14 +178,14 @@ The valueString should follow the regex applicable for that filter.
 </table>           
 <br />
 
-Few points on filter 
+Filter Guidelines
 
-a. Maximum number of values supported in a filter parameter is 2000. <br />
-b. OR condition is not enabled across filter parameters. Eg: PRACTICE or DEPARTMENT. <br />
-c. AND condition is not supported inside a single filter parameter. <br />
-d. If all departments of a context need to be subscribed , use `*`  Eg: ah-department=Organization/a-<CONTEXT_ID>.Department-* <br />
-e. If `ah-department` filter is used , make sure that all contexts that are in the ah-department values are present in the `ah-practice` filter . Else due to AND condition the events could be missed <br />
-   
+a. The maximum number of values supported in a filter parameter is 2000. <br />
+b. An OR condition is not supported across filter parameters (e.g., PRACTICE or DEPARTMENT). <br />
+c. An AND condition is not supported within a single filter parameter. <br />
+d. To subscribe to all departments within a context, use the asterisk (*). For example: ah-department=Organization/a-<CONTEXT_ID>.Department-* <br />
+e. When using the `ah-department` filter, ensure that all contexts included in the ah-department values are also present in the ah-practice filter; otherwise, due to the AND condition, events may be missed. <br />
+
 
 ### 3.4 - Subscription Creation Rules 
 
