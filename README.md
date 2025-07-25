@@ -1,6 +1,8 @@
 # athenahealth Event Subscription Platform
 
-*v0.12 - 2025-07-23*
+*v0.11 - 2024-11-19 -  Eventing Alpha Launch*
+
+*v0.12 - 2025-07-25 -  Enabled Filtering Capability*
 
 ## 1 - Background
 
