@@ -4,6 +4,8 @@
 
 *v0.12 - 2025-07-25 -  Enabled Filtering Capability*
 
+*v0.13 - 2025-07-31 -  Enabled Events of AdminDocument, ClinicalDocument, MedicalRecord, Letter*
+
 ## 1 - Background
 
 The athenahealth Event Subscription Platform makes a broad collection of healthcare domain events available for clients and partners to consume as near real-time notifications.  The platform largely conforms to the [FHIR Subscriptions R5 Backport STU 1.0.0](http://hl7.org/fhir/uv/subscriptions-backport/STU1/StructureDefinition-backport-subscription.html) implementation guide, but with a few differences, primarily around [error handling](#error-handling).  At present the only supported channel type is `rest-hook` and supported payload type is `id-only`.  Resources referenced in the event notifications include both FHIR R4 and proprietary athenahealth endpoints where applicable.  See [payload](#event-payload) below for more details.
@@ -711,6 +713,17 @@ Filters Applicable:
 
 API endpoint(s) to retrieve resource content:
 - [GET /v1/{practiceid}/patients/{patientid}/documents/labresult/{labresultid}](https://docs.athenahealth.com/api/api-ref/document-type-lab-result#Get-patient's-lab-result-document)
+
+### Letter  [Alpha]
+
+Topics:
+- Letter.create
+
+Filters Applicable:
+- [ah-practice](#ah-practice)
+
+API endpoint(s) to retrieve resource content:
+- [GET /v1/{practiceid}/patients/{patientid}/documents/letter/{letterid}](https://docs.athenahealth.com/api/api-ref/document-type-letter#Get-patient's-letter-document)
 
 ### MedicalRecord  [Alpha]
 
