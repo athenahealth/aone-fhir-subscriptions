@@ -4,7 +4,7 @@
 
 *v0.12 - 2025-07-25 -  Enabled Filtering Capability*
 
-*v0.13 - 2025-07-31 -  Enabled Events of AdminDocument, ClinicalDocument, MedicalRecord, Letter*
+*v0.13 - 2025-07-31 -  Enabled Events of AdminDocument, ClinicalDocument, Letter, MedicalRecord, PatientInfoOrder*
 
 ## 1 - Background
 
@@ -120,7 +120,6 @@ curl --request POST https://api.platform.athenahealth.com/fhir/r4/Subscription \
           "url": "http://hl7.org/fhir/uv/subscriptions-backport/StructureDefinition/backport-filter-criteria",
           "valueString": "ah-department=Organization/a-195000.Department-1,Organization/a-195000.Department-12,Organization/a-195001.Department-1"
         },
-        
       ]
     },
     "channel": {
@@ -204,6 +203,70 @@ c. An AND condition is not supported within a single filter parameter. <br />
 d. To subscribe to all departments within a context, use the asterisk `*`. For example: ah-department=Organization/a-<CONTEXT_ID>.Department-* <br />
 e. When using the `ah-department` filter, ensure that all contexts included in the ah-department values are also present in the ah-practice filter; otherwise, due to the AND condition, events may be missed. <br />
 
+#### Department Filter Examples
+
+If you require department-level filtering for any practice (for a given topic), you must make sure that all practices you want subscribed to that topic are represented in both the ah-practice and ah-department filter parameters.  Filters are always applied with an "AND" operator, so you will not receive events unless all specified filter conditions are satisfied.
+
+**Example Scenario**
+
+Partner wants to subscribe to some topic for: <br />
+i.   Practice 100 - all departments <br />
+ii.  Practice 200 - departments 1 and 2 only <br />
+iii. Practice 300 - departments 2 and 3 only <br />
+
+**Subscription Attempt #1 - Incorrect**
+
+```
+"_criteria": {
+      "extension": [
+        {
+          "url": "http://hl7.org/fhir/uv/subscriptions-backport/StructureDefinition/backport-filter-criteria",
+          "valueString": "ah-practice=Organization/a-1.Practice-100,Organization/a-1.Practice-200,Organization/a-1.Practice-300"
+        },
+        {
+          "url": "http://hl7.org/fhir/uv/subscriptions-backport/StructureDefinition/backport-filter-criteria",
+          "valueString": "ah-department=Organization/a-200.Department-1,Organization/a-200.Department-2,Organization/a-300.Department-2,Organization/a-300.Department-3"
+        },
+      ]
+    },
+```
+<br /> This is incorrect.  Events for Practice 100 will not be received because such events will not match the `ah-department` filter.
+
+**Subscription Attempt #2 - Incorrect**
+
+```
+"_criteria": {
+      "extension": [
+        {
+          "url": "http://hl7.org/fhir/uv/subscriptions-backport/StructureDefinition/backport-filter-criteria",
+          "valueString": "ah-practice=Organization/a-1.Practice-100"
+        },
+        {
+          "url": "http://hl7.org/fhir/uv/subscriptions-backport/StructureDefinition/backport-filter-criteria",
+          "valueString": "ah-department=Organization/a-100.Department-*,Organization/a-200.Department-1,Organization/a-200.Department-2,Organization/a-300.Department-2,Organization/a-300.Department-3"
+        },
+      ]
+    },
+```
+<br /> This is also incorrect.  Events for Practice 100 will be received now but events for practices 200 and 300 will not be received because they will not match the `ah-practice` filter.
+
+**Subscription Attempt #3 - Correct**
+
+```
+"_criteria": {
+      "extension": [
+        {
+          "url": "http://hl7.org/fhir/uv/subscriptions-backport/StructureDefinition/backport-filter-criteria",
+          "valueString": "ah-practice=Organization/a-1.Practice-100,Organization/a-1.Practice-200,Organization/a-1.Practice-300"
+        },
+        {
+          "url": "http://hl7.org/fhir/uv/subscriptions-backport/StructureDefinition/backport-filter-criteria",
+          "valueString": "ah-department=Organization/a-100.Department-*,Organization/a-200.Department-1,Organization/a-200.Department-2,Organization/a-300.Department-2,Organization/a-300.Department-3"
+        },
+      ]
+    },
+```
+<br /> This is correct.  Events will now be received as intended.
 
 ### 3.5 - Subscription Creation Rules 
 
@@ -785,6 +848,20 @@ Filters Applicable:
 
 API endpoint(s) to retrieve resource content:
 - [GET /v1/{practiceid}/patients/{patientid}/documents/patientcase/{documentid}](https://docs.athenahealth.com/api/api-ref/document-type-patient-case#Get-patient-case-document-for-a-patient)
+
+### PatientInfoOrder  [Alpha]
+
+Topics:
+- PatientInfoOrder.create
+- PatientInfoOrder.update
+- PatientInfoOrder.delete
+- PatientInfoOrder.remove-after-reclassify
+
+Filters Applicable:
+- [ah-practice](#ah-practice)
+
+API endpoint(s) to retrieve resource content:
+- [GET /v1/{practiceid}/patients/{patientid}/documents/patientinfo]
 
 ### PatientProblem
 
