@@ -214,7 +214,7 @@ i.   Practice 100 - all departments <br />
 ii.  Practice 200 - departments 1 and 2 only <br />
 iii. Practice 300 - departments 2 and 3 only <br />
 
-**Subscription Attempt #1 - Incorrect**
+**Subscription Attempt #1 - :x: **
 
 ```
 "_criteria": {
@@ -232,7 +232,7 @@ iii. Practice 300 - departments 2 and 3 only <br />
 ```
 <br /> This is incorrect.  Events for Practice 100 will not be received because such events will not match the `ah-department` filter.
 
-**Subscription Attempt #2 - Incorrect**
+**Subscription Attempt #2 - :x: **
 
 ```
 "_criteria": {
@@ -250,7 +250,7 @@ iii. Practice 300 - departments 2 and 3 only <br />
 ```
 <br /> This is also incorrect.  Events for Practice 100 will be received now but events for practices 200 and 300 will not be received because they will not match the `ah-practice` filter.
 
-**Subscription Attempt #3 - Correct**
+**Subscription Attempt #3 - :white_check_mark: **
 
 ```
 "_criteria": {
@@ -861,7 +861,7 @@ Filters Applicable:
 - [ah-practice](#ah-practice)
 
 API endpoint(s) to retrieve resource content:
-- [GET /v1/{practiceid}/patients/{patientid}/documents/patientinfo]
+- [GET /v1/{practiceid}/patients/{patientid}/documents/patientinfo](https://docs.athenahealth.com/api/api-ref/document-type-patient-case#Get-list-of-patient-information-documents-for-a-patient)
 
 ### PatientProblem
 
